@@ -606,18 +606,32 @@ export default function AutoAnalyticalModelForm() {
                 <Select
                   value={formData.budgetId}
                   onValueChange={(value) => handleChange('budgetId', value === 'none' ? '' : value)}
-                  disabled={formData.isArchived || !formData.analyticalAccountId}
+                  disabled={formData.isArchived}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={formData.analyticalAccountId ? "Select a budget" : "Select analytics first"} />
+                    <SelectValue placeholder="Select a budget" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No linked budget</SelectItem>
+                    {/* Show matching budgets first, then others */}
                     {budgets
                       .filter(b => b.analytical_account_id === formData.analyticalAccountId)
                       .map((budget) => (
                         <SelectItem key={budget.id} value={budget.id}>
-                          {budget.name} (Bal: ₹{budget.remaining_balance})
+                          ★ {budget.name} (Bal: ₹{(budget.remaining_balance || 0).toLocaleString('en-IN')})
+                        </SelectItem>
+                      ))}
+                    {budgets.filter(b => b.analytical_account_id === formData.analyticalAccountId).length > 0 && 
+                     budgets.filter(b => b.analytical_account_id !== formData.analyticalAccountId).length > 0 && (
+                      <SelectItem value="---" disabled className="text-muted-foreground text-xs">
+                        ── Other Budgets ──
+                      </SelectItem>
+                    )}
+                    {budgets
+                      .filter(b => b.analytical_account_id !== formData.analyticalAccountId)
+                      .map((budget) => (
+                        <SelectItem key={budget.id} value={budget.id}>
+                          {budget.name} (Bal: ₹{(budget.remaining_balance || 0).toLocaleString('en-IN')})
                         </SelectItem>
                       ))}
                   </SelectContent>
