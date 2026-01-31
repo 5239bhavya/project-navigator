@@ -808,10 +808,8 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>()(
           if (order) {
             // Step 1: Create bill with POSTED status
             const year = new Date().getFullYear();
-            const billStore = useVendorBillStore.getState();
-            const currentBills = billStore.bills;
-            const count = currentBills.filter((b) => b.billNumber.includes(String(year))).length + 1;
-            const billNumber = `BILL-${year}-${String(count).padStart(4, '0')}`;
+            // Use timestamp to ensure uniqueness and avoid collision
+            const billNumber = `BILL-${year}${format(new Date(), 'MMddHHmmss')}`;
 
             // Calculate due date (30 days from bill date)
             const billDate = new Date();
@@ -984,13 +982,8 @@ export const useVendorBillStore = create<VendorBillStore>()(
       },
       addBill: async (billData) => {
         const year = new Date().getFullYear();
-        // Ideally fetch count from DB or use UUID/Sequence. 
-        // For hackathon, we'll try to guess based on loaded bills or random.
-        // Better: let Supabase handle or just simple random ID in FE if not strict.
-        // We will stick to current logic but strictly we should fetch bills first.
-        const currentBills = get().bills;
-        const count = currentBills.filter((b) => b.billNumber.includes(String(year))).length + 1;
-        const billNumber = `BILL-${year}-${String(count).padStart(4, '0')}`;
+        // Use timestamp to ensure uniqueness and avoid collision
+        const billNumber = `BILL-${year}${format(new Date(), 'MMddHHmmss')}`;
 
         const { lines, ...headerData } = billData;
 
@@ -1265,10 +1258,8 @@ export const useSalesOrderStore = create<SalesOrderStore>()(
       },
       addOrder: async (orderData) => {
         const year = new Date().getFullYear();
-        // Since we are fetching, simplistic unique ID generation:
-        const currentOrders = get().orders;
-        const count = currentOrders.filter((o) => o.orderNumber.includes(String(year))).length + 1;
-        const orderNumber = `SO-${year}-${String(count).padStart(4, '0')}`;
+        // Use timestamp to ensure uniqueness and avoid collision
+        const orderNumber = `SO-${year}${format(new Date(), 'MMddHHmmss')}`;
 
         const { lines, ...headerData } = orderData;
 
@@ -1447,9 +1438,8 @@ export const useCustomerInvoiceStore = create<CustomerInvoiceStore>()(
       },
       addInvoice: async (invoiceData) => {
         const year = new Date().getFullYear();
-        const currentInvoices = get().invoices;
-        const count = currentInvoices.filter((i) => i.invoiceNumber.includes(String(year))).length + 1;
-        const invoiceNumber = `INV-${year}-${String(count).padStart(4, '0')}`;
+        // Use timestamp to ensure uniqueness and avoid collision
+        const invoiceNumber = `INV-${year}${format(new Date(), 'MMddHHmmss')}`;
 
         const { lines, ...headerData } = invoiceData;
 
