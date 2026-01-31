@@ -54,7 +54,7 @@ export default function SalesOrderList() {
         customer:contacts!sales_orders_customer_id_fkey(id, name)
       `)
       .eq('is_archived', false)
-      .order('order_date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching sales orders:', error);

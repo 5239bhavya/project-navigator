@@ -54,7 +54,7 @@ export default function PurchaseOrderList() {
         vendor:contacts!purchase_orders_vendor_id_fkey(id, name)
       `)
       .eq('is_archived', false)
-      .order('order_date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching purchase orders:', error);
