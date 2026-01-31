@@ -179,7 +179,7 @@ export default function AutoAnalyticalModelForm() {
             productId: data.product_id || '',
             analyticalAccountId: data.analytical_account_id,
             budgetId: data.budget_id || '',
-            status: data.status,
+            status: data.status as 'draft' | 'confirmed' | 'archived',
             isArchived: data.is_archived,
           });
         }

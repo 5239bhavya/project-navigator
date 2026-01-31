@@ -57,7 +57,12 @@ export default function AutoAnalyticalModelList() {
       toast.error('Failed to load auto analytical models');
       console.error('SUPABASE_ERROR [AutoAnalyticalModelList]:', JSON.stringify(error, null, 2));
     } else {
-      setModels(data || []);
+      // Cast status to the expected union type
+      const typedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'draft' | 'confirmed' | 'archived'
+      }));
+      setModels(typedData);
     }
     setIsLoading(false);
   };

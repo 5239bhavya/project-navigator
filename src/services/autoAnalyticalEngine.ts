@@ -104,7 +104,11 @@ export async function getActiveModels(forceRefresh = false): Promise<AutoAnalyti
     return cachedModels || []; // Return stale cache if available
   }
 
-  cachedModels = data || [];
+  // Cast status to the expected union type
+  cachedModels = (data || []).map(item => ({
+    ...item,
+    status: item.status as 'draft' | 'confirmed' | 'archived'
+  }));
   cacheTimestamp = now;
 
   return cachedModels;
