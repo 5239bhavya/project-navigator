@@ -1,0 +1,7 @@
+project_id = "cnnzdgyxobvpyyeznecn"
+
+[functions.create-demo-users]
+verify_jwt = false
+
+[functions.ai-analytical-suggestion]
+verify_jwt = false
