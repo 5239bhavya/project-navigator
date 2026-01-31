@@ -5,6 +5,15 @@ const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
 const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
 
+// Initialize EmailJS once
+let isInitialized = false;
+const initEmailJS = () => {
+  if (!isInitialized && PUBLIC_KEY) {
+    emailjs.init(PUBLIC_KEY);
+    isInitialized = true;
+  }
+};
+
 // Store OTPs temporarily in memory (in production, use a more secure method)
 const otpStore: Map<string, { otp: string; expiresAt: number }> = new Map();
 
@@ -16,26 +25,31 @@ export const generateOTP = (): string => {
 // Send OTP via EmailJS
 export const sendOTP = async (email: string): Promise<{ success: boolean; error?: string }> => {
   try {
+    // Validate environment variables
+    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      console.error('EmailJS configuration missing');
+      return { success: false, error: 'Email service not configured properly' };
+    }
+
+    // Initialize EmailJS
+    initEmailJS();
+
     const otp = generateOTP();
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
 
     // Store OTP
     otpStore.set(email.toLowerCase(), { otp, expiresAt });
 
-    // Initialize EmailJS
-    emailjs.init(PUBLIC_KEY);
-
-    // Send email
+    // Send email with only to_email and otp_code
     await emailjs.send(SERVICE_ID, TEMPLATE_ID, {
       to_email: email,
       otp_code: otp,
-      app_name: 'Shiv Furniture',
     });
 
     return { success: true };
   } catch (error: any) {
     console.error('Error sending OTP:', error);
-    return { success: false, error: error?.text || 'Failed to send OTP' };
+    return { success: false, error: error?.text || error?.message || 'Failed to send OTP' };
   }
 };
 
