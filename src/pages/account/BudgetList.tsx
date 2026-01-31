@@ -66,6 +66,20 @@ export default function BudgetList() {
       render: (value: unknown) => formatCurrency(value as number),
     },
     {
+      key: 'remainingBalance',
+      label: 'Remaining',
+      sortable: true,
+      render: (value: unknown, row: Budget) => {
+        const remaining = value as number;
+        const isNegative = remaining < 0;
+        return (
+          <span className={isNegative ? 'text-destructive font-medium' : 'text-chart-3 font-medium'}>
+            {formatCurrency(remaining)}
+          </span>
+        );
+      },
+    },
+    {
       key: 'achievementPercentage',
       label: 'Progress',
       sortable: true,
