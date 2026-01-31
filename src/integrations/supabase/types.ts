@@ -1096,7 +1096,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_matching_analytical_account: {
+        Args: { p_partner_id: string; p_product_id: string }
+        Returns: string
+      }
+      get_contact_tag_ids: { Args: { contact_id: string }; Returns: string[] }
       get_portal_contact_id: { Args: { _user_id: string }; Returns: string }
+      get_product_category_id: { Args: { product_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
