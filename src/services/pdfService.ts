@@ -12,6 +12,14 @@ interface PDFLine {
   subtotal: number;
 }
 
+interface PDFPayment {
+  paymentNumber: string;
+  paymentDate: string;
+  amount: number;
+  mode: string;
+  reference?: string;
+}
+
 interface PDFData {
   type: 'invoice' | 'bill';
   documentNumber: string;
@@ -25,6 +33,7 @@ interface PDFData {
   totalAmount: number;
   paidAmount: number;
   notes?: string;
+  payments?: PDFPayment[];
 }
 
 const formatCurrency = (amount: number): string => {
@@ -248,6 +257,32 @@ export async function generateInvoicePDF(data: PDFData): Promise<void> {
           <span>${formatCurrency(data.totalAmount - data.paidAmount)}</span>
         </div>
       </div>
+      
+      ${data.payments && data.payments.length > 0 ? `
+        <div class="payments-section" style="margin-top: 30px;">
+          <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 10px; color: #333;">Payment History</h3>
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+              <tr style="background-color: #f3f4f6;">
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #e5e7eb;">Date</th>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #e5e7eb;">Reference</th>
+                <th style="text-align: left; padding: 8px; border-bottom: 1px solid #e5e7eb;">Mode</th>
+                <th style="text-align: right; padding: 8px; border-bottom: 1px solid #e5e7eb;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.payments.map(payment => `
+                <tr>
+                  <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${formatDate(payment.paymentDate)}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-family: monospace; font-size: 10px;">${payment.reference || payment.paymentNumber}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-transform: capitalize;">${payment.mode.replace('_', ' ')}</td>
+                  <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(payment.amount)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
       
       ${data.notes ? `
         <div class="notes-section">
