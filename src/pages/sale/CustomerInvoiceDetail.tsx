@@ -39,6 +39,7 @@ interface Payment {
   amount: number;
   mode: string;
   status: string;
+  reference: string | null;
 }
 
 interface InvoiceData {
@@ -106,10 +107,9 @@ export default function CustomerInvoiceDetail() {
       `)
       .eq('customer_invoice_id', id);
 
-    // Fetch payments
     const { data: paymentsData } = await supabase
       .from('invoice_payments')
-      .select('id, payment_number, payment_date, amount, mode, status')
+      .select('id, payment_number, payment_date, amount, mode, status, reference')
       .eq('customer_invoice_id', id)
       .order('payment_date', { ascending: false });
 
@@ -143,6 +143,13 @@ export default function CustomerInvoiceDetail() {
         totalAmount: invoice.total_amount,
         paidAmount: invoice.paid_amount,
         notes: invoice.notes || undefined,
+        payments: invoice.payments.filter(p => p.status === 'completed').map(p => ({
+          paymentNumber: p.payment_number,
+          paymentDate: p.payment_date,
+          amount: p.amount,
+          mode: p.mode,
+          reference: p.reference || undefined,
+        })),
       });
       toast.success('PDF downloaded successfully');
     } catch (error) {

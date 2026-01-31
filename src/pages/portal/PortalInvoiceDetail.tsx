@@ -130,6 +130,13 @@ export default function PortalInvoiceDetail() {
         totalAmount: totalAmount,
         paidAmount: paidAmount,
         notes: invoice.notes || undefined,
+        payments: payments.filter(p => p.status === 'completed').map(p => ({
+          paymentNumber: p.payment_number,
+          paymentDate: p.payment_date,
+          amount: p.amount,
+          mode: p.mode,
+          reference: p.reference || undefined,
+        })),
       });
 
       toast({
