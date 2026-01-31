@@ -303,6 +303,7 @@ export function useAutoAnalyticalEvaluator() {
         analyticalAccountId: null,
         matchedModelId: null,
         matchedModelName: null,
+        budgetId: null,
         matchScore: 0,
         matchedFields: [],
         isAutoAssigned: false,

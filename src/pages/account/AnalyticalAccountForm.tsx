@@ -88,7 +88,7 @@ export default function AnalyticalAccountForm() {
     setIsLoading(true);
     try {
       if (isNew) {
-        const newAccount = addAccount(formData);
+        const newAccount = await addAccount(formData);
         toast.success('Analytical account created successfully');
         navigate(`/account/analytical-accounts/${newAccount.id}`);
       } else if (id) {
