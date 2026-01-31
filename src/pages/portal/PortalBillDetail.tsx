@@ -9,9 +9,11 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { usePortalBillDetail } from '@/hooks/usePortalData';
 import { getBillBalance, DocumentStatus } from '@/services/paymentService';
+import { generateInvoicePDF } from '@/services/pdfService';
 import { format } from 'date-fns';
 import { ArrowLeft, FileText, CreditCard, Download, CheckCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PortalBillDetail() {
   const { id } = useParams<{ id: string }>();
@@ -98,51 +100,36 @@ export default function PortalBillDetail() {
     try {
       const totalAmount = computedBalance?.totalAmount ?? Number(bill.total_amount);
       const paidAmount = computedBalance?.paidAmount ?? Number(bill.paid_amount);
-      const balanceDue = computedBalance?.balanceDue ?? (totalAmount - paidAmount);
-      const status = computedBalance?.status ?? bill.status;
 
-      const pdfContent = `
-VENDOR BILL
-===========
+      // Fetch vendor details for PDF
+      const { data: billData } = await supabase
+        .from('vendor_bills')
+        .select(`
+          vendor:contacts!vendor_bills_vendor_id_fkey(id, name, email, phone, street, city)
+        `)
+        .eq('id', bill.id)
+        .single();
 
-Bill Number: ${bill.bill_number}
-Bill Date: ${format(new Date(bill.bill_date), 'dd MMM yyyy')}
-Due Date: ${format(new Date(bill.due_date), 'dd MMM yyyy')}
-Status: ${status.replace('_', ' ').toUpperCase()}
-
-LINE ITEMS
-----------
-${lines.map(line => 
-  `${line.product_name}\n  Qty: ${line.quantity} x ${formatCurrency(line.unit_price)} = ${formatCurrency(line.subtotal)}`
-).join('\n\n')}
-
-SUMMARY
--------
-Total Amount: ${formatCurrency(totalAmount)}
-Amount Paid: ${formatCurrency(paidAmount)}
-Balance Due: ${formatCurrency(balanceDue)}
-
-PAYMENT HISTORY
----------------
-${payments.length === 0 ? 'No payments recorded' : payments.map(p => 
-  `${p.payment_number} | ${format(new Date(p.payment_date), 'dd MMM yyyy')} | ${p.mode.replace('_', ' ')} | ${formatCurrency(p.amount)} | ${p.status}`
-).join('\n')}
-
-${bill.notes ? `\nNOTES\n-----\n${bill.notes}` : ''}
-
----
-Generated on ${format(new Date(), 'dd MMM yyyy HH:mm')}
-`;
-
-      const blob = new Blob([pdfContent], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${bill.bill_number}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Generate professional PDF using unified service
+      await generateInvoicePDF({
+        type: 'bill',
+        documentNumber: bill.bill_number,
+        date: bill.bill_date,
+        dueDate: bill.due_date,
+        partyName: billData?.vendor?.name || 'Vendor',
+        partyAddress: [billData?.vendor?.street, billData?.vendor?.city].filter(Boolean).join(', '),
+        partyEmail: billData?.vendor?.email || undefined,
+        partyPhone: billData?.vendor?.phone || undefined,
+        lines: lines.map((l) => ({
+          productName: l.product_name || 'Unknown',
+          quantity: l.quantity,
+          unitPrice: l.unit_price,
+          subtotal: l.subtotal,
+        })),
+        totalAmount: totalAmount,
+        paidAmount: paidAmount,
+        notes: bill.notes || undefined,
+      });
 
       toast({
         title: 'Download Complete',

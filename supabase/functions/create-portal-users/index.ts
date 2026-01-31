@@ -22,6 +22,91 @@ serve(async (req) => {
       },
     });
 
+    // Check if specific demo user is being requested
+    const body = await req.json().catch(() => ({}));
+    const createDemoUser = body.createDemoUser || false;
+
+    const results = [];
+
+    // Create demo portal user if requested
+    if (createDemoUser) {
+      const demoEmail = "portal@shivfurniture.com";
+      const demoPassword = "Portal@123";
+      const demoName = "Portal Demo User";
+
+      // Check if demo user exists
+      const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+      const existingDemoUser = existingUsers?.users?.find(u => u.email === demoEmail);
+
+      if (existingDemoUser) {
+        results.push({
+          email: demoEmail,
+          status: "already exists",
+          password: demoPassword,
+          name: demoName
+        });
+      } else {
+        // Find a customer contact to link (Sharma Residence)
+        const { data: customerContact } = await supabaseAdmin
+          .from('contacts')
+          .select('id, name')
+          .eq('name', 'Sharma Residence')
+          .maybeSingle();
+
+        // Create the demo user
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: demoEmail,
+          password: demoPassword,
+          email_confirm: true,
+          user_metadata: {
+            name: demoName,
+            role: 'portal',
+          },
+        });
+
+        if (authError) {
+          results.push({ email: demoEmail, status: "error", error: authError.message });
+        } else {
+          // Create profile linked to customer
+          const { error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .insert({
+              id: authData.user.id,
+              email: demoEmail,
+              name: demoName,
+              role: 'portal',
+              portal_contact_id: customerContact?.id || null
+            });
+
+          if (profileError) {
+            console.error(`Profile error for ${demoEmail}:`, profileError);
+          }
+
+          // Add to user_roles table
+          await supabaseAdmin
+            .from('user_roles')
+            .insert({
+              user_id: authData.user.id,
+              role: 'portal'
+            });
+
+          results.push({
+            email: demoEmail,
+            password: demoPassword,
+            name: demoName,
+            status: "created",
+            linkedContact: customerContact?.name || 'None',
+            id: authData.user?.id
+          });
+        }
+      }
+
+      return new Response(JSON.stringify({ success: true, results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Fetch all customers from contacts table
     const { data: customers, error: fetchError } = await supabaseAdmin
       .from('contacts')
@@ -31,8 +116,6 @@ serve(async (req) => {
     if (fetchError) {
       throw new Error(`Failed to fetch customers: ${fetchError.message}`);
     }
-
-    const results = [];
 
     for (const customer of customers || []) {
       if (!customer.email) continue;
