@@ -728,16 +728,23 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>()(
 
         const { lines, ...headerData } = orderData;
 
-        // 2. Insert Header
+        // 2. Insert Header - use date string directly if it's a Date, otherwise keep as-is
+        const orderDateStr = headerData.orderDate instanceof Date 
+          ? format(headerData.orderDate, 'yyyy-MM-dd')
+          : headerData.orderDate;
+        const expectedDateStr = headerData.expectedDeliveryDate instanceof Date
+          ? format(headerData.expectedDeliveryDate, 'yyyy-MM-dd')
+          : headerData.expectedDeliveryDate || null;
+
         const { data: order, error: orderError } = await supabase
           .from('purchase_orders')
           .insert({
             order_number: orderNumber,
             vendor_id: headerData.vendorId,
-            order_date: headerData.orderDate.toISOString(),
-            expected_delivery_date: headerData.expectedDeliveryDate?.toISOString(),
+            order_date: orderDateStr,
+            expected_delivery_date: expectedDateStr,
             total_amount: headerData.totalAmount,
-            status: 'draft', // Default
+            status: 'draft',
             analytical_account_id: headerData.analyticalAccountId,
             notes: headerData.notes
           })
@@ -1263,13 +1270,17 @@ export const useSalesOrderStore = create<SalesOrderStore>()(
 
         const { lines, ...headerData } = orderData;
 
-        // Insert Header
+        // Insert Header - use date string to avoid timezone issues
+        const orderDateStr = headerData.orderDate instanceof Date 
+          ? format(headerData.orderDate, 'yyyy-MM-dd')
+          : headerData.orderDate;
+
         const { data: order, error: orderError } = await supabase
           .from('sales_orders')
           .insert({
             order_number: orderNumber,
             customer_id: headerData.customerId,
-            order_date: headerData.orderDate.toISOString(),
+            order_date: orderDateStr,
             total_amount: headerData.totalAmount,
             status: 'draft',
             analytical_account_id: headerData.analyticalAccountId,
