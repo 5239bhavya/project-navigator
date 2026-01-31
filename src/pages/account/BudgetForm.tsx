@@ -128,7 +128,7 @@ export default function BudgetForm() {
     setIsLoading(true);
     try {
       if (isNew) {
-        const newBudget = addBudget({
+        const newBudget = await addBudget({
           name: formData.name,
           startDate: new Date(formData.startDate),
           endDate: new Date(formData.endDate),
@@ -166,9 +166,9 @@ export default function BudgetForm() {
     }
   };
 
-  const handleRevise = () => {
+  const handleRevise = async () => {
     if (id && newBudgetedAmount > 0) {
-      const newBudget = reviseBudget(id, newBudgetedAmount, revisionReason);
+      const newBudget = await reviseBudget(id, newBudgetedAmount, revisionReason);
       toast.success('Budget revision created');
       setShowReviseDialog(false);
       navigate(`/account/budgets/${newBudget.id}`);

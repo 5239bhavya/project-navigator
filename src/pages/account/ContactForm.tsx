@@ -132,7 +132,7 @@ export default function ContactForm() {
     setIsLoading(true);
     try {
       if (isNew) {
-        const newContact = addContact(formData);
+        const newContact = await addContact(formData);
         toast.success('Contact created successfully');
         navigate(`/account/contacts/${newContact.id}`);
       } else if (id) {
