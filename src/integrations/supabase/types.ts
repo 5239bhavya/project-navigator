@@ -586,6 +586,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_archived: boolean
+          linked_analytic_account_id: string | null
           name: string
           purchase_price: number
           sales_price: number
@@ -597,6 +598,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_archived?: boolean
+          linked_analytic_account_id?: string | null
           name: string
           purchase_price?: number
           sales_price?: number
@@ -608,6 +610,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_archived?: boolean
+          linked_analytic_account_id?: string | null
           name?: string
           purchase_price?: number
           sales_price?: number
@@ -619,6 +622,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_linked_analytic_account_id_fkey"
+            columns: ["linked_analytic_account_id"]
+            isOneToOne: false
+            referencedRelation: "analytical_accounts"
             referencedColumns: ["id"]
           },
         ]
