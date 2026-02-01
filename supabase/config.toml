@@ -2,3 +2,15 @@ project_id = "goydlgjsvomgkeltvjsb"
 
 [functions.razorpay-order]
 verify_jwt = false
+
+[functions.ai-assistant]
+verify_jwt = false
+
+[functions.ai-analytical-suggestion]
+verify_jwt = false
+
+[functions.create-demo-users]
+verify_jwt = false
+
+[functions.create-portal-users]
+verify_jwt = false
